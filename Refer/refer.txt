@@ -1,0 +1,116 @@
+# Conversational AI Chatbot with RAG - Development Log
+
+## PHASE 1 - Backend Setup (FastAPI + LangChain + ChromaDB) - [UPDATED]
+
+### 1. Project Structure
+Created the following directory structure:
+```
+backend/
+├── app/
+│   ├── api/
+│   │   ├── routes/
+│   │   │   ├── chat.py      # Handles chat conversations
+│   │   │   ├── embed.py     # Handles document embeddings
+│   │   │   └── projects.py  # Manages Arun Jayesh's projects
+│   │   └── __init__.py
+│   ├── core/
+│   │   ├── chat_chain.py    # LangChain conversational chain [UPDATED to use Ollama]
+│   │   ├── embeddings.py    # Vector embeddings handling [UPDATED to use HuggingFace]
+│   │   ├── projects.py      # Project data management
+│   │   └── __init__.py
+│   ├── db/
+│   │   └── __init__.py      # For future database connections
+│   ├── models/
+│   │   └── __init__.py      # For database models
+│   ├── schemas/
+│   │   └── __init__.py      # For Pydantic schemas
+│   ├── main.py              # FastAPI application entry point
+│   └── __init__.py
+├── data/                    # For storing project data
+├── .env                     # Environment variables [UPDATED to remove API keys]
+└── requirements.txt         # Project dependencies [UPDATED to use free alternatives]
+```
+
+### 2. Dependencies Installed [UPDATED]
+```
+langchain==0.3.25
+langchain_community==0.3.24
+langchain_core==0.3.60
+huggingface_hub
+sentence-transformers
+chromadb==1.0.10
+fastapi==0.115.9
+uvicorn==0.34.2
+pydantic==2.11.4
+python-dotenv==1.1.0
+python-multipart
+docx2txt==0.9
+unstructured==0.17.2
+ollama
+```
+
+### 3. Environment Variables [UPDATED]
+Updated .env file with the following variables:
+```
+CHROMA_PERSIST_DIRECTORY=./chroma_db
+HOST=localhost
+PORT=8000
+OLLAMA_HOST=http://localhost:11434
+```
+
+### 4. API Routes
+
+#### Chat API (`/api/chat`)
+- POST `/api/chat`: Processes chat messages using LangChain conversational chain
+- Handles conversation history
+- Returns AI response with source documents
+
+#### Embed API (`/api/embed`)
+- POST `/api/embed/text`: Embeds text into ChromaDB
+- POST `/api/embed/file`: Uploads and embeds documents (PDF, DOCX, TXT, HTML)
+- GET `/api/embed/status`: Returns vector store status
+
+#### Projects API (`/api/projects`)
+- POST `/api/projects`: Create a new project
+- GET `/api/projects`: List all projects with optional filtering
+- GET `/api/projects/{id}`: Get a specific project
+- PUT `/api/projects/{id}`: Update a project
+- DELETE `/api/projects/{id}`: Delete a project
+
+### 5. Core Components [UPDATED]
+
+#### Vector Store
+- Using ChromaDB for vector storage
+- Configured with persistent storage in ./chroma_db
+- Using HuggingFace Embeddings with "all-MiniLM-L6-v2" model
+
+#### Document Processing
+- Recursive character text splitter with 1000 chunk size
+- 200 character chunk overlap
+- Support for multiple file types (PDF, DOCX, TXT, HTML)
+
+#### QA Chain [UPDATED]
+- ConversationalRetrievalChain from LangChain
+- Using Ollama with mistral model (locally hosted)
+- ConversationBufferMemory for chat history
+- Custom prompt template for domain-specific responses
+- Similarity search retriever with k=5
+
+### 6. Project Data Storage
+- Projects stored in JSON file (data/projects.json)
+- Projects also embedded in vector store for semantic search
+- Each project has metadata for filtering
+
+## PHASE 2 - Vector Store & Semantic Search with Free Models [UPDATED]
+
+### 1. Local LLM Integration
+- Installed Ollama for hosting local LLM models
+- Using mistral model (~4.1GB size) for conversational responses
+- Replaced OpenAI with Ollama integration in chat_chain.py
+- Local inference without API costs or token limits
+
+### 2. Free Embeddings
+- Integrated HuggingFace embeddings (all-MiniLM-L6-v2)
+- Updated embeddings.py to use sentence-transformers
+- No API keys or costs for generating embeddings
+- Compatible with existing ChromaDB setup
